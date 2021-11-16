@@ -1,63 +1,58 @@
-import path from 'path';
-import fs from 'fs';
-import webpack from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import chalk from 'chalk';
-import { merge } from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
-import baseConfig from './webpack.config.base';
-import webpackPaths from './webpack.paths';
-import checkNodeEnv from '../scripts/check-node-env';
-import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import path from "path";
+import fs from "fs";
+import webpack from "webpack";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import chalk from "chalk";
+import { merge } from "webpack-merge";
+import { spawn, execSync } from "child_process";
+import baseConfig from "./webpack.config.base";
+import webpackPaths from "./webpack.paths";
+import checkNodeEnv from "../scripts/check-node-env";
+import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
-if (process.env.NODE_ENV === 'production') {
-  checkNodeEnv('development');
+if (process.env.NODE_ENV === "production") {
+  checkNodeEnv("development");
 }
 
 const port = process.env.PORT || 1212;
-const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-const requiredByDLLConfig = module.parent.filename.includes(
-  'webpack.config.renderer.dev.dll'
-);
+const manifest = path.resolve(webpackPaths.dllPath, "renderer.json");
+const requiredByDLLConfig = module.parent.filename.includes("webpack.config.renderer.dev.dll");
 
 /**
  * Warn if the DLL is not built
  */
-if (
-  !requiredByDLLConfig &&
-  !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))
-) {
+if (!requiredByDLLConfig && !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))) {
   console.log(
     chalk.black.bgYellow.bold(
       'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"'
     )
   );
-  execSync('npm run postinstall');
+  execSync("npm run postinstall");
 }
 
 export default merge(baseConfig, {
-  devtool: 'inline-source-map',
+  devtool: "inline-source-map",
 
-  mode: 'development',
+  mode: "development",
 
-  target: ['web', 'electron-renderer'],
+  target: ["web", "electron-renderer"],
 
   entry: [
     `webpack-dev-server/client?http://localhost:${port}/dist`,
-    'webpack/hot/only-dev-server',
-    'core-js',
-    'regenerator-runtime/runtime',
-    path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    "webpack/hot/only-dev-server",
+    "core-js",
+    "regenerator-runtime/runtime",
+    path.join(webpackPaths.srcRendererPath, "index.tsx"),
   ],
 
   output: {
     path: webpackPaths.distRendererPath,
-    publicPath: '/',
-    filename: 'renderer.dev.js',
+    publicPath: "/",
+    filename: "renderer.dev.js",
     library: {
-      type: 'umd',
+      type: "umd",
     },
   },
 
@@ -66,44 +61,44 @@ export default merge(baseConfig, {
       {
         test: /\.s?css$/,
         use: [
-          'style-loader',
+          "style-loader",
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: true,
               sourceMap: true,
               importLoaders: 1,
             },
           },
-          'sass-loader',
+          "sass-loader",
         ],
         include: /\.module\.s?(c|a)ss$/,
       },
       {
         test: /\.s?css$/,
-        use: ['style-loader', 'css-loader', 'sass-loader'],
+        use: ["style-loader", "css-loader", "sass-loader"],
         exclude: /\.module\.s?(c|a)ss$/,
       },
       //Font Loader
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
-        type: 'asset/resource',
+        type: "asset/resource",
       },
       // SVG Font
       {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
         use: {
-          loader: 'url-loader',
+          loader: "url-loader",
           options: {
             limit: 10000,
-            mimetype: 'image/svg+xml',
+            mimetype: "image/svg+xml",
           },
         },
       },
       // Common Image Formats
       {
         test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader',
+        use: "url-loader",
       },
     ],
   },
@@ -113,7 +108,7 @@ export default merge(baseConfig, {
       : new webpack.DllReferencePlugin({
           context: webpackPaths.dllPath,
           manifest: require(manifest),
-          sourceType: 'var',
+          sourceType: "var",
         }),
 
     new webpack.NoEmitOnErrorsPlugin(),
@@ -131,7 +126,7 @@ export default merge(baseConfig, {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
+      NODE_ENV: "development",
     }),
 
     new webpack.LoaderOptionsPlugin({
@@ -141,8 +136,8 @@ export default merge(baseConfig, {
     new ReactRefreshWebpackPlugin(),
 
     new HtmlWebpackPlugin({
-      filename: path.join('index.html'),
-      template: path.join(webpackPaths.srcRendererPath, 'index.ejs'),
+      filename: path.join("index.html"),
+      template: path.join(webpackPaths.srcRendererPath, "index.ejs"),
       minify: {
         collapseWhitespace: true,
         removeAttributeQuotes: true,
@@ -150,7 +145,7 @@ export default merge(baseConfig, {
       },
       isBrowser: false,
       env: process.env.NODE_ENV,
-      isDevelopment: process.env.NODE_ENV !== 'production',
+      isDevelopment: process.env.NODE_ENV !== "production",
       nodeModules: webpackPaths.appNodeModulesPath,
     }),
   ],
@@ -164,23 +159,23 @@ export default merge(baseConfig, {
     port,
     compress: true,
     hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
+    headers: { "Access-Control-Allow-Origin": "*" },
     static: {
-      publicPath: '/',
+      publicPath: "/",
     },
     historyApiFallback: {
       verbose: true,
       disableDotRule: false,
     },
     onBeforeSetupMiddleware() {
-      console.log('Starting Main Process...');
-      spawn('npm', ['run', 'start:main'], {
+      console.log("Starting Main Process...");
+      spawn("npm", ["run", "start:main"], {
         shell: true,
         env: process.env,
-        stdio: 'inherit',
+        stdio: "inherit",
       })
-        .on('close', (code) => process.exit(code))
-        .on('error', (spawnError) => console.error(spawnError));
+        .on("close", (code) => process.exit(code))
+        .on("error", (spawnError) => console.error(spawnError));
     },
   },
 });
